@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Przetwarzanie wideo</title>
+</head>
+<body>
+    <h1>Podgląd wideo</h1>
+    <p>{{ message }}</p>
+
+    <!-- Warunkowe wyświetlanie -->
+    {% if source_type == "video" %}
+    <h2>Podgląd lokalnego pliku wideo</h2>
+    <img src="/video_feed/{{ video_path }}" alt="Podgląd lokalnego pliku wideo">
+    {% elif source_type == "webcam" %}
+    <h2>Podgląd kamery internetowej</h2>
+    <img src="/video_feed_url?webcam_url={{ webcam_url }}" alt="Podgląd kamery internetowej">
+    {% else %}
+    <p>Nie wybrano źródła wideo.</p>
+    {% endif %}
+</body>
+</html>
