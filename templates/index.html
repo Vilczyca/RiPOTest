@@ -1,32 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
+
 <head>
-    <title>Wybór plików</title>
-    <script>
-        function disableElement(id) {
-            document.getElementById(id).disabled = true;
-        }
-
-        function checkBothSelected() {
-            const photosSelected = document.getElementById("photos").value !== "";
-            const videoSelected = document.getElementById("video").value !== "";
-
-            if (photosSelected && videoSelected) {
-                document.getElementById("submit").disabled = false;
-            }
-        }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odtwarzacz Wideo</title>
 </head>
+
 <body>
-    <h1>Wybór plików</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="photos">Wybierz folder zdjęć:</label>
-        <input type="file" id="photos" name="photos_folder" webkitdirectory onchange="disableElement('photos'); checkBothSelected();" required>
-        <br>
-        <label for="video">Wybierz plik wideo:</label>
-        <input type="file" id="video" name="video_file" onchange="disableElement('video'); checkBothSelected();" required>
-        <br>
-        <button type="submit" id="submit" disabled>Przejdź do player</button>
+
+
+<!-- Krok pierwszy -->
+<div id="step1">
+    <h1>Krok 1: Wybierz plik MP4</h1>
+    <form id="fileForm">
+        <input type="file" id="videoInput" accept=".mp4">
+        <button type="button" id="acceptVideo" disabled>Akceptuj</button>
     </form>
+    <br>
+    <hr>
+</div>
+
+
+<!-- Krok drugi -->
+<div id="step2" style="display: none;">
+    <h1>Krok 2: Wybierz folder z bazą zdjęć osób, których twarze chcesz znaleźć</h1>
+    <form id="photosForm">
+        <input type="file" id="photosInput" webkitdirectory>
+        <button type="button" id="acceptPhotos" disabled>Akceptuj</button>
+    </form>
+    <br>
+    <hr>
+</div>
+
+
+<!-- Krok trzeci -->
+<div id="step3" style="display: none;">
+    <h1>Krok 3: Wybierz klatkę do analizy</h1>
+    <video id="videoPlayer" controls width="600">
+        <source id="videoSource" src="C:\Users\User_1\Documents\Studia\sem6\RiPOTest\images\test.mp4" type="video/mp4">
+        Twoja przeglądarka nie obsługuje tagu wideo.
+    </video>
+    <br>
+    <button type="button" id="analyse" disabled>Analizuj wybraną klatkę wideo</button>
+
+</div>
+
+<script>
+
+    const step1 = document.getElementById('step1');
+    const videoInput = step1.querySelector('#videoInput');
+    const acceptVideo = document.getElementById('acceptVideo');
+
+    const step2 = document.getElementById('step2');
+    const photosInput = document.getElementById('photosInput');
+    const acceptPhotos = document.getElementById('acceptPhotos');
+
+    const step3 = document.getElementById('step3');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+
+    const analyse = document.getElementById('analyse');
+
+    // Wybieranie wideo
+    videoInput.addEventListener('change', function() {
+        if (videoInput.files.length > 0) {
+            acceptVideo.disabled = false;
+        }
+    });
+
+    // Zaakceptowanie wideo
+    acceptVideo.addEventListener('click', function() {
+        const file = videoInput.files[0];
+        if (file) {
+            step2.style.display = 'block';
+            acceptVideo.disabled = true;
+        }
+    });
+
+    // Wybieranie folderu zdjęć
+    photosInput.addEventListener('change', function() {
+        if (photosInput.files.length > 0) {
+            acceptPhotos.disabled = false;
+        }
+    });
+
+    // Zaakceptowanie zdjęć
+    acceptPhotos.addEventListener('click', function() {
+        const file = videoInput.files[0];
+        if (file) {
+            step3.style.display = 'block';
+            const url = URL.createObjectURL(file);
+            console.log(url);
+            videoSource.src = url;
+            videoPlayer.load();
+        }
+    });
+
+    // Wybranie klatki
+    videoPlayer.addEventListener('pause', function() {
+        analyse.disabled = false;
+    });
+    videoPlayer.addEventListener('play', function() {
+        analyse.disabled = true;
+    });
+
+    // Analiza klatki
+    document.getElementById('analyse').addEventListener('click', function() {
+    const videoFile = document.getElementById('videoInput').files[0];
+    const frameNumber = Math.floor(videoPlayer.currentTime * 30); // Zakładamy 30 FPS
+
+    const formData = new FormData();
+    formData.append('video', videoFile);  // Dodaj plik wideo
+    formData.append('frame_number', frameNumber);  // Numer klatki
+
+    fetch('/analyse_frame', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Wynik analizy:', data);
+        if (data.error) {
+            alert(`Błąd: ${data.error}`);
+        } else {
+            alert('Sukces: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Błąd przesyłania:', error));
+
+    videoPlayer.disabled = true;
+    analyse.disabled = true;
+});
+
+
+</script>
 </body>
 </html>
