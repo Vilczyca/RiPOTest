@@ -1,84 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rozpoznawanie twarzy</title>
+    <title>Wybór plików</title>
     <script>
-        console.log("Hello, World");
-        let stepACompleted = {{ "true" if step_a_completed else "false" }};
-        let stepBCompleted = {{ "true" if step_b_completed else "false" }};
+        function disableElement(id) {
+            document.getElementById(id).disabled = true;
+        }
 
-        function checkBothSteps() {
-            console.log("check " + stepACompleted + " " + stepBCompleted);
-            if (stepACompleted && stepBCompleted) {
-                document.getElementById("submitButton").disabled = false;
+        function checkBothSelected() {
+            const photosSelected = document.getElementById("photos").value !== "";
+            const videoSelected = document.getElementById("video").value !== "";
+
+            if (photosSelected && videoSelected) {
+                document.getElementById("submit").disabled = false;
             }
-        }
-
-        function handleStepA() {
-            stepACompleted = true;
-            document.getElementById("stepAButton").disabled = true;
-            document.getElementById("image_base").disabled = true;
-
-            checkBothSteps();
-        }
-
-        function handleStepB() {
-            stepBCompleted = true;
-            document.getElementById("video").disabled = true;
-            document.getElementById("webcam_url").disabled = true;
-            document.getElementById("stepBButton_video").disabled = true;
-            document.getElementById("stepBButton_cameraURL").disabled = true;
-
-            checkBothSteps();
-        }
-
-        function clearCookiesAndRefresh() {
-            // Funkcja czyszczenia ciasteczek
-            document.cookie.split(";").forEach(function(cookie) {
-                document.cookie = cookie.split("=")[0] + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            });
-            // Odświeżenie strony
-            location.reload();
         }
     </script>
 </head>
 <body>
-    <h1>Rozpoznawanie twarzy</h1>
-
-    <form action="/clear_cookies" method="POST">
-        <button type="submit">Odśwież i wyczyść ciasteczka</button>
-    </form>
-
-    <!-- Krok A: Przekaż folder z bazą zdjęć -->
-    <h2>Krok A: Przekaż folder z bazą zdjęć</h2>
-    <form action="/upload_step_a" method="POST" enctype="multipart/form-data">
-        <label for="image_base">Wybierz folder:</label>
-        <input type="file" name="image_base" id="image_base" webkitdirectory directory required {{ "disabled" if step_a_completed else "" }}>
-        <button type="submit" id="stepAButton" {{ "disabled" if step_a_completed else "" }}>Zaakceptuj krok A</button>
-    </form>
-
-    <hr>
-
-    <!-- Krok B: Prześlij plik wideo -->
-    <h2>Krok B: Prześlij źródło obrazu</h2>
-    <form action="/upload_step_b" method="POST" enctype="multipart/form-data">
-        <label for="video">Prześlij plik wideo:</label>
-        <input type="file" name="video" id="video" accept="video/*" {{ "disabled" if step_b_completed else "" }}>
-        <button type="submit" id="stepBButton_video" {{ "disabled" if step_b_completed else "" }}>Zaakceptuj krok B</button>
-    </form>
-
-    <!-- Krok B: Podaj URL kamery -->
-    <form action="/upload_step_b" method="POST">
-        <label for="webcam_url">Podaj URL kamery internetowej:</label>
-        <input type="url" name="webcam_url" id="webcam_url" placeholder="http://adres_ip/video" {{ "disabled" if step_b_completed else "" }}>
-        <button type="submit" id="stepBButton_cameraURL" {{ "disabled" if step_b_completed else "" }}>Zaakceptuj krok B</button>
-    </form>
-
-    <hr>
-
-    <!-- Przycisk do zatwierdzenia całości -->
-    <form action="/process" method="POST">
-        <button type="submit" id="submitButton" disabled>Uruchom aplikację</button>
+    <h1>Wybór plików</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="photos">Wybierz folder zdjęć:</label>
+        <input type="file" id="photos" name="photos_folder" webkitdirectory onchange="disableElement('photos'); checkBothSelected();" required>
+        <br>
+        <label for="video">Wybierz plik wideo:</label>
+        <input type="file" id="video" name="video_file" onchange="disableElement('video'); checkBothSelected();" required>
+        <br>
+        <button type="submit" id="submit" disabled>Przejdź do player</button>
     </form>
 </body>
 </html>
